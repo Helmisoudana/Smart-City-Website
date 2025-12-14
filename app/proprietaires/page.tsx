@@ -23,6 +23,9 @@ export default function ProprietairesPage() {
   const [formData, setFormData] = useState({
     nom: "",
     type: "",
+    adresse: "",
+    telephone: "",
+    email: ""
   })
   const { toast } = useToast()
 
@@ -47,7 +50,7 @@ export default function ProprietairesPage() {
       await api.post("/proprietaires", formData)
       toast({ title: "Succès", description: "Propriétaire créé avec succès" })
       setCreateOpen(false)
-      setFormData({ nom: "", type: "" })
+      setFormData({ nom: "", type: ""  ,   adresse: "", telephone: "", email: ""})
       fetchData()
     } catch (error: any) {
       toast({
@@ -90,6 +93,9 @@ export default function ProprietairesPage() {
       ),
     },
     { key: "type", label: "Type" },
+    { key: "email", label: "Email" },
+    { key: "telephone", label: "Telephone" },
+    { key: "adresse", label: "Adresse" },
   ]
 
   return (
@@ -117,23 +123,51 @@ export default function ProprietairesPage() {
             <DialogTitle>Nouveau propriétaire</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <Label>Nom *</Label>
+            <Input
+              value={formData.nom}
+              onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
+              placeholder="Nom du propriétaire"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Type</Label>
+            <Input
+              value={formData.type}
+              onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+              placeholder="Ex: Particulier, Entreprise"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Adresse</Label>
+            <Input
+              value={formData.adresse}
+              onChange={(e) => setFormData({ ...formData, adresse: e.target.value })}
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Nom *</Label>
+              <Label>Téléphone</Label>
               <Input
-                value={formData.nom}
-                onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
-                placeholder="Nom du propriétaire"
+                value={formData.telephone}
+                onChange={(e) => setFormData({ ...formData, telephone: e.target.value })}
               />
             </div>
+
             <div className="space-y-2">
-              <Label>Type</Label>
+              <Label>Email</Label>
               <Input
-                value={formData.type}
-                onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                placeholder="Ex: Entreprise, Municipalité"
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               />
             </div>
           </div>
+        </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setCreateOpen(false)}>
               Annuler

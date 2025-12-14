@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import api from "@/lib/api"
-import type { Capteur, Arrondissement } from "@/types"
+import type { Capteur, Arrondissement , Proprietaire  } from "@/types"
 import { PageHeader } from "@/components/ui/page-header"
 import { DataTable } from "@/components/ui/data-table"
 import { ConfirmDialog } from "@/components/ui/confirm-dialog"
@@ -18,6 +18,7 @@ import { motion } from "framer-motion"
 export default function CapteursPage() {
   const [capteurs, setCapteurs] = useState<Capteur[]>([])
   const [arrondissements, setArrondissements] = useState<Arrondissement[]>([])
+  const [proprietaires, setProprietaires] = useState<Proprietaire[]>([])
   const [loading, setLoading] = useState(true)
   const [createOpen, setCreateOpen] = useState(false)
   const [deleteItem, setDeleteItem] = useState<Capteur | null>(null)
@@ -39,9 +40,10 @@ export default function CapteursPage() {
   const fetchData = async () => {
     try {
       setLoading(true)
-      const [capRes, arrRes] = await Promise.all([api.get("/capteurs"), api.get("/arrondissements")])
+      const [capRes, arrRes ,propRes] = await Promise.all([api.get("/capteurs"), api.get("/arrondissements") ,api.get("/proprietaires"),])
       setCapteurs(capRes.data)
       setArrondissements(arrRes.data)
+      setProprietaires(propRes.data)
     } catch (error) {
       toast({ title: "Erreur", description: "Impossible de charger les capteurs", variant: "destructive" })
     } finally {
@@ -193,14 +195,29 @@ export default function CapteursPage() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>ID Propriétaire</Label>
-              <Input
-                type="number"
-                value={formData.id_proprietaire}
-                onChange={(e) => setFormData({ ...formData, id_proprietaire: e.target.value })}
-                placeholder="Ex: 1"
-              />
-            </div>
+            <Label>Propriétaire</Label>
+            <Select
+              value={formData.id_proprietaire}
+              onValueChange={(v) =>
+                setFormData({ ...formData, id_proprietaire: v })
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Sélectionner un propriétaire" />
+              </SelectTrigger>
+              <SelectContent>
+                {proprietaires.map((prop) => (
+                  <SelectItem
+                    key={prop.id_proprietaire}
+                    value={String(prop.id_proprietaire)}
+                  >
+                    {prop.nom}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setCreateOpen(false)}>

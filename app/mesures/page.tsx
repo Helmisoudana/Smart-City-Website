@@ -88,13 +88,53 @@ export default function MesuresPage() {
       setDeleting(false)
     }
   }
+  const isToday = (date: Date) => {
+  const now = new Date()
+  return (
+    date.getDate() === now.getDate() &&
+    date.getMonth() === now.getMonth() &&
+    date.getFullYear() === now.getFullYear()
+  )
+}
+
+const isYesterday = (date: Date) => {
+  const yesterday = new Date()
+  yesterday.setDate(yesterday.getDate() - 1)
+  return (
+    date.getDate() === yesterday.getDate() &&
+    date.getMonth() === yesterday.getMonth() &&
+    date.getFullYear() === yesterday.getFullYear()
+  )
+}
+
+const formatChartDate = (dateStr: string) => {
+  const d = new Date(dateStr)
+
+  if (isToday(d)) return "Aujourd’hui"
+  if (isYesterday(d)) return "Hier"
+
+  return d.toLocaleDateString("fr-FR", {
+    day: "2-digit",
+    month: "2-digit",
+  })
+}
 
   const filteredMesures = selectedCapteur === "all" ? mesures : mesures.filter((m) => m.id_capteur === selectedCapteur)
 
-  const chartData = filteredMesures.slice(0, 20).map((m) => ({
-    date: new Date(m.date_mesure).toLocaleDateString(),
+  const chartData = filteredMesures
+  .slice()
+  .sort(
+    (a, b) =>
+      new Date(a.date_mesure).getTime() -
+      new Date(b.date_mesure).getTime()
+  )
+  .slice(-20)
+  .map((m) => ({
+    timestamp: new Date(m.date_mesure).getTime(),
+    dateLabel: formatChartDate(m.date_mesure),
     valeur: m.valeur,
   }))
+
 
   const columns = [
     { key: "id_mesure", label: "ID" },
@@ -134,19 +174,43 @@ export default function MesuresPage() {
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={250}>
-                <LineChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis dataKey="date" tick={{ fontSize: 11 }} />
-                  <YAxis />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "hsl(var(--card))",
-                      border: "1px solid hsl(var(--border))",
-                    }}
-                  />
-                  <Line type="monotone" dataKey="valeur" stroke="#8884d8" strokeWidth={2} />
-                </LineChart>
-              </ResponsiveContainer>
+              <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+
+                <XAxis
+                  dataKey="timestamp"
+                  type="number"
+                  domain={["dataMin", "dataMax"]}
+                  tickFormatter={(value) => {
+                    const item = chartData.find((d) => d.timestamp === value)
+                    return item?.dateLabel ?? ""
+                  }}
+                  tick={{ fontSize: 11 }}
+                />
+
+                <YAxis />
+
+                <Tooltip
+                  labelFormatter={(value) => {
+                    const item = chartData.find((d) => d.timestamp === value)
+                    return item?.dateLabel ?? ""
+                  }}
+                  contentStyle={{
+                    backgroundColor: "hsl(var(--card))",
+                    border: "1px solid hsl(var(--border))",
+                  }}
+                />
+
+                <Line
+                  type="monotone"
+                  dataKey="valeur"
+                  stroke="#8884d8"
+                  strokeWidth={2}
+                  dot={{ r: 3 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+
             </CardContent>
           </Card>
         </motion.div>

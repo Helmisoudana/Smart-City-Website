@@ -97,6 +97,10 @@ export interface Proprietaire {
   id_proprietaire: number
   nom: string
   type?: string
+  adresse?: string
+  telephone?: string
+  email?: string 
+
 }
 
 // Analytics Types
