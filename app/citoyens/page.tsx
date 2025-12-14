@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import api from "@/lib/api"
-import type { Citoyen, CitoyenEngage } from "@/types"
+import type { Citoyen, CitoyenEngage,Arrondissement  } from "@/types"
 import { PageHeader } from "@/components/ui/page-header"
 import { DataTable } from "@/components/ui/data-table"
 import { ConfirmDialog } from "@/components/ui/confirm-dialog"
@@ -13,12 +13,14 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { motion } from "framer-motion"
 import { Star } from "lucide-react"
 
 export default function CitoyensPage() {
   const [citoyens, setCitoyens] = useState<Citoyen[]>([])
   const [citoyensEngages, setCitoyensEngages] = useState<CitoyenEngage[]>([])
+  const [arrondissements, setArrondissements] = useState<Arrondissement[]>([])
   const [loading, setLoading] = useState(true)
   const [createOpen, setCreateOpen] = useState(false)
   const [deleteItem, setDeleteItem] = useState<Citoyen | null>(null)
@@ -30,6 +32,7 @@ export default function CitoyensPage() {
     email: "",
     score_engagement: "0",
     preference_mobilite: "",
+    id_arrondissement: "",
   })
   const { toast } = useToast()
 
@@ -40,9 +43,10 @@ export default function CitoyensPage() {
   const fetchData = async () => {
     try {
       setLoading(true)
-      const [citRes, engRes] = await Promise.all([api.get("/citoyens"), api.get("/citoyens-plus-engages")])
+      const [citRes, engRes,arrRes] = await Promise.all([api.get("/citoyens"), api.get("/citoyens-plus-engages"),api.get("/arrondissements")])
       setCitoyens(citRes.data)
       setCitoyensEngages(engRes.data)
+      setArrondissements(arrRes.data)
     } catch (error) {
       toast({ title: "Erreur", description: "Impossible de charger les citoyens", variant: "destructive" })
     } finally {
@@ -59,7 +63,7 @@ export default function CitoyensPage() {
       await api.post("/citoyens", payload)
       toast({ title: "Succès", description: "Citoyen créé avec succès" })
       setCreateOpen(false)
-      setFormData({ nom: "", adresse: "", telephone: "", email: "", score_engagement: "0", preference_mobilite: "" })
+      setFormData({ nom: "", adresse: "", telephone: "", email: "", score_engagement: "0", preference_mobilite: "" ,id_arrondissement: "",})
       fetchData()
     } catch (error: any) {
       toast({
@@ -88,7 +92,9 @@ export default function CitoyensPage() {
       setDeleting(false)
     }
   }
-
+  const getArrondissementNom = (id?: number) => {
+    return arrondissements.find(a => a.id_arrondissement === id)?.nom_arrondissement || "-"
+  }
   const columns = [
     { key: "id_citoyen", label: "ID" },
     { key: "nom", label: "Nom" },
@@ -105,6 +111,9 @@ export default function CitoyensPage() {
       ),
     },
     { key: "preference_mobilite", label: "Mobilité" },
+    { key: "Arrondissement", label: "Arrondissement" ,render: (item: Citoyen) => (
+    <span>{getArrondissementNom(item.id_arrondissement)}</span>
+  ), },
   ]
 
   return (
@@ -214,6 +223,30 @@ export default function CitoyensPage() {
                 placeholder="Ex: Vélo, Transport en commun"
               />
             </div>
+            <div className="space-y-2">
+            <Label>Arrondissement *</Label>
+            <Select
+              value={formData.id_arrondissement}
+              onValueChange={(value) =>
+                setFormData({ ...formData, id_arrondissement: value })
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Choisir un arrondissement" />
+              </SelectTrigger>
+
+              <SelectContent>
+                {arrondissements.map((arr) => (
+                  <SelectItem
+                    key={arr.id_arrondissement}
+                    value={String(arr.id_arrondissement)}
+                  >
+                    {arr.nom_arrondissement}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setCreateOpen(false)}>

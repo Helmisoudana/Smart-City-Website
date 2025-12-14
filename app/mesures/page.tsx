@@ -120,6 +120,20 @@ const formatChartDate = (dateStr: string) => {
 }
 
   const filteredMesures = selectedCapteur === "all" ? mesures : mesures.filter((m) => m.id_capteur === selectedCapteur)
+  const MESURE_TYPES = [
+    "Qualité de l'air",
+    "Trafic",
+    "Énergie",
+    "Déchets",
+    "Température",
+  ] as const
+  const MESURE_UNITS: Record<string, string[]> = {
+  "Qualité de l'air": ["ppm", "µg/m³"],
+  Trafic: ["véhicules/h", "%"],
+  Énergie: ["kWh", "W"],
+  Déchets: ["kg", "tonnes"],
+  Température: ["°C"],
+}
 
   const chartData = filteredMesures
   .slice()
@@ -266,22 +280,49 @@ const formatChartDate = (dateStr: string) => {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Unité *</Label>
-                <Input
-                  value={formData.unite}
-                  onChange={(e) => setFormData({ ...formData, unite: e.target.value })}
-                  placeholder="Ex: °C, ppm, dB"
-                />
-              </div>
+              <Label>Unité *</Label>
+              <Select
+                value={formData.unite}
+                onValueChange={(v) => setFormData({ ...formData, unite: v })}
+                disabled={!formData.type_mesure}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionner l'unité" />
+                </SelectTrigger>
+                <SelectContent>
+                  {(MESURE_UNITS[formData.type_mesure] || []).map((unit) => (
+                    <SelectItem key={unit} value={unit}>
+                      {unit}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             </div>
             <div className="space-y-2">
-              <Label>Type de mesure *</Label>
-              <Input
-                value={formData.type_mesure}
-                onChange={(e) => setFormData({ ...formData, type_mesure: e.target.value })}
-                placeholder="Ex: température, pollution, bruit"
-              />
-            </div>
+            <Label>Type de mesure *</Label>
+            <Select
+              value={formData.type_mesure}
+              onValueChange={(v) =>
+                setFormData({
+                  ...formData,
+                  type_mesure: v,
+                  unite: "", // reset unité quand type change
+                })
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Sélectionner le type" />
+              </SelectTrigger>
+              <SelectContent>
+                {MESURE_TYPES.map((type) => (
+                  <SelectItem key={type} value={type}>
+                    {type}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setCreateOpen(false)}>

@@ -24,6 +24,7 @@ export interface Citoyen {
   email?: string
   score_engagement: number
   preference_mobilite?: string
+  id_arrondissement: number
 }
 
 export interface Consultation {
